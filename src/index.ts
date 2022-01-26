@@ -42,6 +42,7 @@ export default function mitt<Events extends Record<EventType, unknown>>(
 	type GenericEventHandler =
 		| Handler<Events[keyof Events]>
 		| WildcardHandler<Events>;
+	// 传入all 或者新建Map();
 	all = all || new Map();
 
 	return {
@@ -57,7 +58,9 @@ export default function mitt<Events extends Record<EventType, unknown>>(
 		 * @param {Function} handler Function to call in response to given event
 		 * @memberOf mitt
 		 */
+		// 注册 'type' 方法, 传入handler
 		on<Key extends keyof Events>(type: Key, handler: GenericEventHandler) {
+			// 从Map 取 type 方法, 如果之前存在handle 就push进去 否则set Map(type, handler)
 			const handlers: Array<GenericEventHandler> | undefined = all!.get(type);
 			if (handlers) {
 				handlers.push(handler);
@@ -74,12 +77,17 @@ export default function mitt<Events extends Record<EventType, unknown>>(
 		 * @param {Function} [handler] Handler function to remove
 		 * @memberOf mitt
 		 */
+		// 注销 'type' 方法,  取消 handler 或者所有的方法
 		off<Key extends keyof Events>(type: Key, handler?: GenericEventHandler) {
+			// 获取type 为 ‘type’ 的handlers
 			const handlers: Array<GenericEventHandler> | undefined = all!.get(type);
+			// 如果有handlers
 			if (handlers) {
+				// 如果有传入特定的handler 删除 具体为什么用为运算暂时没理解
 				if (handler) {
 					handlers.splice(handlers.indexOf(handler) >>> 0, 1);
 				}
+				// 如果没传handler 删除所有的handlers
 				else {
 					all!.set(type, []);
 				}
@@ -96,6 +104,10 @@ export default function mitt<Events extends Record<EventType, unknown>>(
 		 * @param {Any} [evt] Any value (object is recommended and powerful), passed to each handler
 		 * @memberOf mitt
 		 */
+		// emit type 为 string 或者 '*'
+	  // 应该是使用了 ts的重载
+		// evt 为参数
+		// slice()? why?
 		emit<Key extends keyof Events>(type: Key, evt?: Events[Key]) {
 			let handlers = all!.get(type);
 			if (handlers) {
